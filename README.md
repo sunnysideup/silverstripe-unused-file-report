@@ -11,7 +11,7 @@ at a convenient time.
 
 ## Versions
 
-This version requires Silverstripe 5+.
+This version requires Silverstripe 5.
 
 For Silverstripe 3 use the 1.x releases.
 For Silverstripe 4 use the 2.x releases.
@@ -19,7 +19,7 @@ For Silverstripe 4 use the 2.x releases.
 ## Installation
 
 ```
-composer require springtimesoft/silverstripe-unused-file-report
+composer require robingram/silverstripe-unused-file-report
 ```
 
 ## Running the task
