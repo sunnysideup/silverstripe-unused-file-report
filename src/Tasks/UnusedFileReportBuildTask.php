@@ -45,38 +45,38 @@ class UnusedFileReportBuildTask extends BuildTask
     protected $enabled = true;
 
     /**
-    * Reference to the SS class manifest
-    * @var SS_ClassManifest
-    */
+     * Reference to the SS class manifest
+     * @var SS_ClassManifest
+     */
     protected $manifest;
 
     /**
-    * Classes that are descended from DataObject
-    * @var array
-    */
+     * Classes that are descended from DataObject
+     * @var array
+     */
     protected $dataClasses;
 
     /**
-    * Classes that are descended from SiteTree
-    * @var array
-    */
+     * Classes that are descended from SiteTree
+     * @var array
+     */
     protected $siteTreeClasses;
 
     // Isolation levels so that we can run large queries without locking the DB
     public const ISOLATION_ON = 'SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;';
     public const ISOLATION_OFF = 'SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;';
 
-    public const HAS_ONE_QUERY_TEMPLATE = 'SELECT %sID AS file_id FROM %s WHERE %sID > 0';
-    public const HAS_MANY_QUERY_TEMPLATE = 'SELECT %sID AS file_id FROM %s WHERE %sID > 0';
-    public const MANY_MANY_QUERY_TEMPLATE = 'SELECT %sID AS file_id FROM %s_%s WHERE %sID > 0';
-    public const CONTENT_QUERY_TEMPLATE = "SELECT %s AS content FROM %s WHERE %s IS NOT NULL AND %s != '' AND (%s LIKE '%%img%%' OR %s LIKE '%%file_link%%')";
+    public const HAS_ONE_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s" WHERE "%sID" > 0';
+    public const HAS_MANY_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s" WHERE "%sID" > 0';
+    public const MANY_MANY_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s_%s" WHERE %sID > 0';
+    public const CONTENT_QUERY_TEMPLATE = 'SELECT "%s" AS content FROM "%s" WHERE "%s" IS NOT NULL AND "%s" != \'\' AND ("%s" LIKE \'%%img%%\' OR %s LIKE \'%%file_link%%\')';
 
     public const LARGE_QUERY_BATCH_SIZE = 500;
 
     /**
-    * Classes that we should NOT be checking for unused file references
-    * @var array
-    */
+     * Classes that we should NOT be checking for unused file references
+     * @var array
+     */
     protected $excludeClasses = [
         'File',
         'FileVersion',
@@ -271,12 +271,12 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get all the File or Image relationships on a class for the given type of relationship
-    *
-    * @param string $class        Name of class
-    * @param string $relationship Type of relationship (e.g. 'has_one')
-    * @return array               Array of relationships to files or images
-    */
+     * Get all the File or Image relationships on a class for the given type of relationship
+     *
+     * @param string $class        Name of class
+     * @param string $relationship Type of relationship (e.g. 'has_one')
+     * @return array               Array of relationships to files or images
+     */
     protected function getRelationshipFields($class, $relationship)
     {
         $relationships = @(array) Config::inst()->get($class, $relationship, Config::UNINHERITED);
@@ -312,11 +312,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Build a query string to get the file IDs for all relationship types
-    *
-    * @param array $relationships All relationships of type 'has_one', 'has_many' and 'many_many'
-    * @return string
-    */
+     * Build a query string to get the file IDs for all relationship types
+     *
+     * @param array $relationships All relationships of type 'has_one', 'has_many' and 'many_many'
+     * @return string
+     */
     protected function getRelationshipFileQuery($relationships)
     {
         $hasOneSql = $this->getHasOneQuery($relationships['has_one']);
@@ -327,11 +327,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Build a query to get file IDs for has_one relationships
-    *
-    * @param array $hasOneClasses Classes and their relationships of type 'has_one'
-    * @return string
-    */
+     * Build a query to get file IDs for has_one relationships
+     *
+     * @param array $hasOneClasses Classes and their relationships of type 'has_one'
+     * @return string
+     */
     protected function getHasOneQuery($hasOneClasses)
     {
         return implode(
@@ -360,11 +360,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Build a query to get file IDs for has_many relationships
-    *
-    * @param array $hasOneClasses Classes and their relationships of type 'has_many'
-    * @return string
-    */
+     * Build a query to get file IDs for has_many relationships
+     *
+     * @param array $hasOneClasses Classes and their relationships of type 'has_many'
+     * @return string
+     */
     protected function getHasManyQuery($hasManyClasses)
     {
         if (count($hasManyClasses) == 0) {
@@ -389,11 +389,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Build a query to get file IDs for many_many relationships
-    *
-    * @param array $hasOneClasses Classes and their relationships of type 'many_many'
-    * @return string
-    */
+     * Build a query to get file IDs for many_many relationships
+     *
+     * @param array $hasOneClasses Classes and their relationships of type 'many_many'
+     * @return string
+     */
     protected function getManyManyQuery($manyManyClasses)
     {
         return implode(
@@ -424,11 +424,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Run the query to get the file IDs referenced by all relationships
-    *
-    * @param string $query SQL query to run
-    * @return array
-    */
+     * Run the query to get the file IDs referenced by all relationships
+     *
+     * @param string $query SQL query to run
+     * @return array
+     */
     protected function getRelatedFileIDs($query)
     {
         if ($query) {
@@ -444,11 +444,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get all the classes that have references to HTMLText content
-    *
-    * @param array $candidates Candidate class names
-    * @return array
-    */
+     * Get all the classes that have references to HTMLText content
+     *
+     * @param array $candidates Candidate class names
+     * @return array
+     */
     protected function getContentClasses($candidates)
     {
         $contentClasses = [];
@@ -466,11 +466,11 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Build a set of queries to get content of all HTMLText fields
-    *
-    * @param array $contentClasses Classes and their HTMLText fields
-    * @return string
-    */
+     * Build a set of queries to get content of all HTMLText fields
+     *
+     * @param array $contentClasses Classes and their HTMLText fields
+     * @return string
+     */
     protected function getContentQuery($contentClasses)
     {
         $queries = array_map(
@@ -500,10 +500,10 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get the IDs of all image and file references in HTML content
-    * @param array $queries Array of SQL queries to get the content fields
-    * @return array
-    */
+     * Get the IDs of all image and file references in HTML content
+     * @param array $queries Array of SQL queries to get the content fields
+     * @return array
+     */
     protected function getContentIds($queries)
     {
         $allIds = [];
@@ -531,10 +531,10 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Extract the IDs of all files from image references in HTML content
-    * @param string $content
-    * @return array
-    */
+     * Extract the IDs of all files from image references in HTML content
+     * @param string $content
+     * @return array
+     */
     protected function extractImageReferences($content): array
     {
         $allImages = (object) ['images' => []];
@@ -555,10 +555,10 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Extract the IDs of all files from file references in HTML content
-    * @param string $content
-    * @return array
-    */
+     * Extract the IDs of all files from file references in HTML content
+     * @param string $content
+     * @return array
+     */
     protected function extractFileReferences($content): array
     {
         $allFiles = (object) ['files' => []];
@@ -580,10 +580,10 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get the IDs of files given a list of paths
-    * @param array $files
-    * @return array
-    */
+     * Get the IDs of files given a list of paths
+     * @param array $files
+     * @return array
+     */
     protected function findFiles($files)
     {
         return array_filter(
@@ -612,9 +612,9 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get classes that are descendents of SiteTree
-    * @return array
-    */
+     * Get classes that are descendents of SiteTree
+     * @return array
+     */
     protected function getSiteTreeClasses()
     {
         if (is_null($this->siteTreeClasses)) {
@@ -625,9 +625,9 @@ class UnusedFileReportBuildTask extends BuildTask
     }
 
     /**
-    * Get classes that are descendents of DataObject
-    * @return array
-    */
+     * Get classes that are descendents of DataObject
+     * @return array
+     */
     protected function getDataClasses()
     {
         if (is_null($this->dataClasses)) {
@@ -672,7 +672,7 @@ class UnusedFileReportBuildTask extends BuildTask
      */
     protected function getNiceSize($bytes)
     {
-        $unit = ['B','KiB','MiB','GiB','TiB','PiB'];
+        $unit = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
 
         if ($bytes == 0) {
             return '0 ' . $unit[0];
@@ -680,5 +680,4 @@ class UnusedFileReportBuildTask extends BuildTask
 
         return @round($bytes / pow(1024, ($i =  floor(log($bytes, 1024)))), 2) . ' ' . (isset($unit[$i]) ? $unit[$i] : 'B');
     }
-
 }
