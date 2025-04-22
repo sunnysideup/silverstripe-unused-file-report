@@ -157,7 +157,7 @@ class DeleteAllUnusedFiles extends BuildTask
         if ($fileName) {
             $path = Controller::join_links(ASSETS_PATH, $fileName);
             if (file_exists($path)) {
-                echo 'ERROR: Also having to delete physical file: ' . $path . PHP_EOL;
+                echo 'ERROR: Also having to delete physical file: ' . $path;
                 if ($this->skipDeletingFoldersPhysicalOnly && $file instanceof Folder) {
                     return true;
                 }
@@ -170,7 +170,7 @@ class DeleteAllUnusedFiles extends BuildTask
                 if ($this->deleteDirectoryOrFile($path)) {
                     echo '... Deleted physical file: ' . $path . PHP_EOL;
                 } else {
-                    echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
+                    echo '... Deletion did not work successfully: ' . $path . PHP_EOL;
                 }
                 if (file_exists($path)) {
                     echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
