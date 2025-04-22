@@ -2,6 +2,7 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
+use SilverStripe\Assets\Image;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\Queries\SQLInsert;
@@ -15,6 +16,7 @@ use SilverStripe\Core\Manifest\ClassLoader;
 use SilverStripe\Control\Director;
 use RobIngram\SilverStripe\UnusedFileReport\Model\UnusedFileReportDB;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Manifest\ClassManifest;
 
 /**
@@ -202,6 +204,7 @@ class UnusedFileReportBuildTask extends BuildTask
         $classesToCheck = $this->getClassesToCheck();
 
         $classesWithFiles = $this->getFileClasses($classesToCheck);
+
         $relationshipQuery = $this->getRelationshipFileQuery($classesWithFiles);
         unset($classesWithFiles);
 
@@ -324,7 +327,6 @@ class UnusedFileReportBuildTask extends BuildTask
         $hasOneSql = $this->getHasOneQuery($relationships['has_one']);
         $hasManySql = $this->getHasManyQuery($relationships['has_many']);
         $manyManySql = $this->getManyManyQuery($relationships['many_many']);
-        print_r($manyManySql);
         return implode("\nUNION\n", array_filter([$hasOneSql, $hasManySql, $manyManySql]));
     }
 
@@ -406,10 +408,18 @@ class UnusedFileReportBuildTask extends BuildTask
                         "\nUNION\n",
                         array_map(
                             function ($joinTable, $field) use ($k) {
+                                $tableName = Injector::inst()->get($k)->getSchema()->tableName($k);
+                                echo "xxx" . $tableName . "xxx";
+                                echo "xxx" . $joinTable . "xxx";
+                                if ($field === File::class) {
+                                    $field = 'File';
+                                } elseif ($field === Image::class) {
+                                    $field = 'Image';
+                                }
                                 return sprintf(
                                     self::MANY_MANY_QUERY_TEMPLATE,
                                     $field,
-                                    $k,
+                                    $tableName,
                                     $joinTable,
                                     $field,
                                 );
