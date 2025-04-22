@@ -82,16 +82,41 @@ class DeleteAllUnusedFiles extends BuildTask
             $file->deleteFromStage(Versioned::LIVE);
             DB::query('DELETE FROM "File" WHERE "ID" = ' . $id . ' LIMIT 1');
             DB::query('DELETE FROM "File_Live" WHERE "ID" = ' . $id . ' LIMIT 1');
-            $fullName = Controller::join_links(ASSETS_PATH, $fileName);
-            if (file_exists($fullName)) {
-                echo 'Deleting physical file : ' . $fullName . PHP_EOL;
-                unlink($fullName);
-                if (file_exists($fullName)) {
-                    user_error('Could not delete file...' . $fullName);
+            $path = Controller::join_links(ASSETS_PATH, $fileName);
+            if (file_exists($path)) {
+                echo 'Deleting physical file : ' . $path . PHP_EOL;
+                if (! $this->deleteDirectoryOrFile($path)) {
+                    echo 'ERROR: Could not delete file...' . $path . PHP_EOL;
+                }
+                if (file_exists($path)) {
+                    echo 'ERROR: Could not delete file...' . $path . PHP_EOL;
                 }
             }
         } else {
-            user_error(PHP_EOL . 'ERROR: could not find file to delete ' . PHP_EOL);
+            echo 'ERROR: could not find DB file to delete ' . PHP_EOL;
         }
+    }
+
+    function deleteDirectoryOrFile(string $path): bool
+    {
+        if (! is_dir($path)) {
+            return unlink($path);
+            return false;
+        }
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        return rmdir($path);
     }
 }
