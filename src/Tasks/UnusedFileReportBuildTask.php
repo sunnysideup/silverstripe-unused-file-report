@@ -14,6 +14,8 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Core\Manifest\ClassLoader;
 use SilverStripe\Control\Director;
 use RobIngram\SilverStripe\UnusedFileReport\Model\UnusedFileReportDB;
+use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Core\Manifest\ClassManifest;
 
 /**
  * A task that collects data on unused files
@@ -46,7 +48,7 @@ class UnusedFileReportBuildTask extends BuildTask
 
     /**
      * Reference to the SS class manifest
-     * @var SS_ClassManifest
+     * @var ClassManifest
      */
     protected $manifest;
 
@@ -68,7 +70,7 @@ class UnusedFileReportBuildTask extends BuildTask
 
     public const HAS_ONE_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s" WHERE "%sID" > 0';
     public const HAS_MANY_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s" WHERE "%sID" > 0';
-    public const MANY_MANY_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s_%s" WHERE %sID > 0';
+    public const MANY_MANY_QUERY_TEMPLATE = 'SELECT "%sID" AS file_id FROM "%s_%s" WHERE "%sID" > 0';
     public const CONTENT_QUERY_TEMPLATE = 'SELECT "%s" AS content FROM "%s" WHERE "%s" IS NOT NULL AND "%s" != \'\' AND ("%s" LIKE \'%%img%%\' OR %s LIKE \'%%file_link%%\')';
 
     public const LARGE_QUERY_BATCH_SIZE = 500;
@@ -84,7 +86,7 @@ class UnusedFileReportBuildTask extends BuildTask
 
     /**
      * {@inheritDoc}
-     * @param  SS_HTTPRequest $request [description]
+     * @param  HTTPRequest $request
      */
     public function run($request)
     {
@@ -322,7 +324,7 @@ class UnusedFileReportBuildTask extends BuildTask
         $hasOneSql = $this->getHasOneQuery($relationships['has_one']);
         $hasManySql = $this->getHasManyQuery($relationships['has_many']);
         $manyManySql = $this->getManyManyQuery($relationships['many_many']);
-
+        print_r($manyManySql);
         return implode("\nUNION\n", array_filter([$hasOneSql, $hasManySql, $manyManySql]));
     }
 
