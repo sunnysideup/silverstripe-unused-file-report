@@ -64,7 +64,9 @@ class DeleteAllUnusedFiles extends BuildTask
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         if ($list) {
             foreach ($list as $id) {
-                $this->deleteFile($id);
+                if ($this->deleteFile($id)) {
+                    DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
+                }
             }
         } else {
             echo 'OK: No files to delete.' . PHP_EOL;
@@ -73,7 +75,7 @@ class DeleteAllUnusedFiles extends BuildTask
     }
 
 
-    protected function deleteFile($id)
+    protected function deleteFile(int $id): bool
     {
         $file = File::get()->byID($id);
         if ($file) {
@@ -98,10 +100,14 @@ class DeleteAllUnusedFiles extends BuildTask
                 if (file_exists($path)) {
                     echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
                 }
+            } else {
+                return true;
             }
         } else {
+            DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
             echo 'ERROR: could not find DB file to delete ' . PHP_EOL;
         }
+        return false;
     }
 
     protected function deleteDirectoryOrFile(string $path): bool
