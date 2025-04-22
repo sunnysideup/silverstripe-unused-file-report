@@ -471,9 +471,9 @@ class UnusedFileReportBuildTask extends BuildTask
      * Build a set of queries to get content of all HTMLText fields
      *
      * @param array $contentClasses Classes and their HTMLText fields
-     * @return string
+     * @return array
      */
-    protected function getContentQuery($contentClasses)
+    protected function getContentQuery($contentClasses): array
     {
         $queries = array_map(
             function ($k, $v) {
