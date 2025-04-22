@@ -409,8 +409,6 @@ class UnusedFileReportBuildTask extends BuildTask
                         array_map(
                             function ($joinTable, $field) use ($k) {
                                 $tableName = Injector::inst()->get($k)->getSchema()->tableName($k);
-                                echo "xxx" . $tableName . "xxx";
-                                echo "xxx" . $joinTable . "xxx";
                                 if ($field === File::class) {
                                     $field = 'File';
                                 } elseif ($field === Image::class) {
