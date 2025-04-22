@@ -101,7 +101,6 @@ class DeleteAllUnusedFiles extends BuildTask
     {
         if (! is_dir($path)) {
             return unlink($path);
-            return false;
         }
 
         $iterator = new \RecursiveIteratorIterator(
