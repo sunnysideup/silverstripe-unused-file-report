@@ -168,9 +168,9 @@ class DeleteAllUnusedFiles extends BuildTask
                     return true;
                 }
                 if ($this->deleteDirectoryOrFile($path)) {
-                    echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
-                } else {
                     echo '... Deleted physical file: ' . $path . PHP_EOL;
+                } else {
+                    echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
                 }
                 if (file_exists($path)) {
                     echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
