@@ -111,64 +111,76 @@ class DeleteAllUnusedFiles extends BuildTask
         $file = File::get()->byID($id);
 
         if ($file) {
-            echo 'Looking at file: ' . $myCount . ' / ' . $this->countOfFiles . ': '  . $file->getFilename() . PHP_EOL;
+            echo 'Looking at file: ' . $myCount . ' / ' . $this->countOfFiles . ': '  . $file->getFilename();
             if ($this->skipDeletingFolders) {
                 if ($file instanceof Folder) {
-                    echo 'Skipping folder: ' . $file->getFilename() . PHP_EOL;
+                    echo '... Skipping folder: ' . $file->getFilename() . PHP_EOL;
                     return true;
                 }
             }
             if ($this->skipDeletingImages) {
                 if ($file instanceof Image) {
-                    echo 'Skipping image: ' . $file->getFilename() . PHP_EOL;
+                    echo '... Skipping image: ' . $file->getFilename() . PHP_EOL;
                     return true;
                 }
             }
             if ($this->skipDeletingNonImages) {
                 if (!($file instanceof Image) && !($file instanceof Folder)) {
-                    echo 'Skipping non-image file: ' . $file->getFilename() . PHP_EOL;
+                    echo '... Skipping non-image file: ' . $file->getFilename() . PHP_EOL;
                     return true;
                 }
             }
-            $fileName = $file->getFilename();
             $file->deleteFromStage(Versioned::DRAFT);
             $file->deleteFromStage(Versioned::LIVE);
             DB::query('DELETE FROM "File" WHERE "ID" = ' . $id . ' LIMIT 1');
             DB::query('DELETE FROM "File_Live" WHERE "ID" = ' . $id . ' LIMIT 1');
             echo '... Deleted' . PHP_EOL;
-
-            if ($fileName) {
-                $path = Controller::join_links(ASSETS_PATH, $fileName);
-                if (file_exists($path)) {
-                    echo 'ERROR: Also having to delete physical file: ' . $path . PHP_EOL;
-                    if ($this->skipDeletingAllFilesPhysicalOnly) {
-                        return true;
-                    }
-                    if ($this->skipDeletingFoldersPhysicalOnly && $file instanceof Folder) {
-                        return true;
-                    }
-                    if ($this->skipDeletingImagesPhysicalOnly && $file instanceof Image) {
-                        return true;
-                    }
-                    if ($this->skipDeletingNonImagesPhysicalOnly && !($file instanceof Image) && !($file instanceof Folder)) {
-                        return true;
-                    }
-                    if ($this->deleteDirectoryOrFile($path)) {
-                        echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
-                    } else {
-                        echo '... Deleted physical file: ' . $path . PHP_EOL;
-                    }
-                    if (file_exists($path)) {
-                        echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
-                    }
-                } else {
-                    DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
-                    return true;
-                }
+            if ($this->deletePhysicalFile($file)) {
+                DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
+                return true;
+            } else {
+                return false;
             }
         } else {
             DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
-            echo 'ERROR: Could not find DB file to delete: ' . $id . PHP_EOL;
+            echo 'ERROR: Could not find DB file to delete, ID is: ' . $id . PHP_EOL;
+        }
+        return false;
+    }
+
+    protected function deletePhysicalFile($file): bool
+    {
+        if ($this->skipDeletingAllFilesPhysicalOnly) {
+            return true;
+        }
+        $fileName = $file->getFilename();
+        if ($fileName) {
+            $path = Controller::join_links(ASSETS_PATH, $fileName);
+            if (file_exists($path)) {
+                echo 'ERROR: Also having to delete physical file: ' . $path . PHP_EOL;
+                if ($this->skipDeletingFoldersPhysicalOnly && $file instanceof Folder) {
+                    return true;
+                }
+                if ($this->skipDeletingImagesPhysicalOnly && $file instanceof Image) {
+                    return true;
+                }
+                if ($this->skipDeletingNonImagesPhysicalOnly && !($file instanceof Image) && !($file instanceof Folder)) {
+                    return true;
+                }
+                if ($this->deleteDirectoryOrFile($path)) {
+                    echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
+                } else {
+                    echo '... Deleted physical file: ' . $path . PHP_EOL;
+                }
+                if (file_exists($path)) {
+                    echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        } else {
+            echo 'ERROR: Could not find filename for File with ID: ' . $file->ID . PHP_EOL;
         }
         return false;
     }
