@@ -51,6 +51,10 @@ class DeleteAllUnusedFiles extends BuildTask
     {
         Environment::increaseMemoryLimitTo(-1);
         Environment::increaseTimeLimitTo(-1);
+        if (! Director::is_cli()) {
+            echo 'This task can only be run from the command line.' . PHP_EOL;
+            return;
+        }
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         if ($list) {
             foreach ($list as $id) {
