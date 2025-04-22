@@ -3,6 +3,8 @@
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
 use Exception;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\Queries\SQLInsert;
@@ -51,8 +53,12 @@ class DeleteAllUnusedFiles extends BuildTask
     {
         Environment::increaseMemoryLimitTo(-1);
         Environment::increaseTimeLimitTo(-1);
+        echo PHP_EOL . PHP_EOL;
+        echo '======================' . PHP_EOL;
+        echo 'Delete all unused files' . PHP_EOL;
+        echo '======================' . PHP_EOL;
         if (! Director::is_cli()) {
-            echo 'This task can only be run from the command line.' . PHP_EOL;
+            echo 'ERROR: This task can only be run from the command line.' . PHP_EOL;
             return;
         }
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
@@ -61,8 +67,9 @@ class DeleteAllUnusedFiles extends BuildTask
                 $this->deleteFile($id);
             }
         } else {
-            echo 'No files to delete.' . PHP_EOL;
+            echo 'OK: No files to delete.' . PHP_EOL;
         }
+        echo PHP_EOL . PHP_EOL;
     }
 
 
@@ -76,7 +83,7 @@ class DeleteAllUnusedFiles extends BuildTask
             try {
                 //$file->deleteFile();
             } catch (Exception $exception) {
-                echo 'Caught exception: ' . $exception->getMessage();
+                echo 'ERROR: Caught exception: ' . $exception->getMessage();
             }
             $file->deleteFromStage(Versioned::DRAFT);
             $file->deleteFromStage(Versioned::LIVE);
@@ -84,12 +91,12 @@ class DeleteAllUnusedFiles extends BuildTask
             DB::query('DELETE FROM "File_Live" WHERE "ID" = ' . $id . ' LIMIT 1');
             $path = Controller::join_links(ASSETS_PATH, $fileName);
             if (file_exists($path)) {
-                echo 'Deleting physical file : ' . $path . PHP_EOL;
+                echo 'ERROR: Also having to delete physical file: ' . $path . PHP_EOL;
                 if (! $this->deleteDirectoryOrFile($path)) {
-                    echo 'ERROR: Could not delete file...' . $path . PHP_EOL;
+                    echo 'ERROR: Deletion did not work successfully: ' . $path . PHP_EOL;
                 }
                 if (file_exists($path)) {
-                    echo 'ERROR: Could not delete file...' . $path . PHP_EOL;
+                    echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
                 }
             }
         } else {
@@ -97,15 +104,15 @@ class DeleteAllUnusedFiles extends BuildTask
         }
     }
 
-    function deleteDirectoryOrFile(string $path): bool
+    protected function deleteDirectoryOrFile(string $path): bool
     {
         if (! is_dir($path)) {
             return unlink($path);
         }
 
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST
         );
 
         foreach ($iterator as $item) {
