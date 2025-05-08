@@ -130,6 +130,12 @@ class DeleteAllUnusedFiles extends BuildTask
                 if (!($file instanceof Image)) {
                     echo '... Skipping non-image file: ' . $file->getFilename() . PHP_EOL;
                     return true;
+                } elseif ($file->getExtension() === 'svg') {
+                    echo '... Skipping SVG file: ' . $file->getFilename() . PHP_EOL;
+                    return true;
+                } elseif ($file->getExtension() === 'pdf') {
+                    echo '... Skipping PDF file: ' . $file->getFilename() . PHP_EOL;
+                    return true;
                 }
             }
             $file->deleteFromStage(Versioned::DRAFT);
