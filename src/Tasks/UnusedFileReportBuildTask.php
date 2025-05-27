@@ -600,7 +600,7 @@ class UnusedFileReportBuildTask extends BuildTask
 
     protected function getFileLinkIds(array $alreadyFoundIds): array
     {
-        $fileLinks = FileLink::get()->exclude(['LinkID' => $alreadyFoundIds]);
+        $fileLinks = FileLink::get()->exclude(['LinkedID' => $alreadyFoundIds]);
         foreach ($fileLinks as $fileLink) {
             $parent = $fileLink->Parent();
             if ($parent && $parent->exists()) {
