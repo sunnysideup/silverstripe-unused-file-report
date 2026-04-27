@@ -3,7 +3,9 @@
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
 use Symfony\Component\Console\Input\InputInterface;
-use SilverStripe\Console\PolyOutput;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Command\Command;
+use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Assets\Image;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
@@ -15,10 +17,8 @@ use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\Environment;
 use SilverStripe\Core\Manifest\ClassLoader;
-use SilverStripe\Control\Director;
 use RobIngram\SilverStripe\UnusedFileReport\Model\UnusedFileReportDB;
 use SilverStripe\Assets\Shortcodes\FileLink;
-use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Core\Manifest\ClassManifest;
 
@@ -31,7 +31,7 @@ class UnusedFileReportBuildTask extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    protected static string $commandName = 'UnusedFileReportBuildTask';
+    protected static string $commandName = 'unused-file-report-build';
 
     /**
      * {@inheritDoc}
@@ -43,7 +43,7 @@ class UnusedFileReportBuildTask extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    protected $description = 'A task that collects data on unused files';
+    protected static string $description = 'A task that collects data on unused files';
 
     /**
      * {@inheritDoc}
@@ -95,29 +95,38 @@ class UnusedFileReportBuildTask extends BuildTask
 
     /**
      * {@inheritDoc}
-     * @param  HTTPRequest $request
      */
     protected function execute(InputInterface $input, PolyOutput $output): int
     {
         Environment::increaseMemoryLimitTo(-1);
         Environment::increaseTimeLimitTo(-1);
-        if ($id = $request->getVar('check')) {
+        if ($id = $input->getOption('check')) {
             $used = $this->getUsedFiles();
 
             if (in_array($id, $used)) {
-                $this->outputMessage('File#' . $id . ' is used on the site. Checked ' . date('Y-m-d H:i:s'));
+                $output->writeln('File#' . $id . ' is used on the site. Checked ' . date('Y-m-d H:i:s'));
             } else {
-                $this->outputMessage('File#' . $id . ' is unused. Checked ' . date('Y-m-d H:i:s'));
+                $output->writeln('File#' . $id . ' is unused. Checked ' . date('Y-m-d H:i:s'));
             }
         } else {
-            $this->outputMessage('Start building index: ' . date('Y-m-d H:i:s'));
-            $this->buildReportTable();
+            $output->writeln('Start building index: ' . date('Y-m-d H:i:s'));
+            $this->buildReportTable($output);
 
-            $this->outputMessage('Memory: ' . $this->getNiceSize(memory_get_peak_usage()));
-            $this->outputMessage('End: ' . date('Y-m-d H:i:s'));
+            $output->writeln('Memory: ' . $this->getNiceSize(memory_get_peak_usage()));
+            $output->writeln('End: ' . date('Y-m-d H:i:s'));
         }
 
-        return 0;
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Get input options that can be passed into the command
+     */
+    public function getOptions(): array
+    {
+        return [
+            new InputOption('check', 'c', InputOption::VALUE_REQUIRED, 'Check if a specific file ID is used'),
+        ];
     }
 
     /**
@@ -125,7 +134,7 @@ class UnusedFileReportBuildTask extends BuildTask
      * files that aren't used from the File and File_Live tables.
      *
      */
-    public function buildReportTable()
+    public function buildReportTable(PolyOutput $output)
     {
         $used             = $this->getUsedFiles();
         $unusedPreviously = UnusedFileReportDB::get()->count();
@@ -202,7 +211,7 @@ class UnusedFileReportBuildTask extends BuildTask
                 }
             }
 
-            $this->outputMessage(sprintf(
+            $output->writeln(sprintf(
                 '%sReport table generation completed. %s %s files to Unused File DB. Total disk space used by unused files: %s',
                 PHP_EOL,
                 ($count > $unusedPreviously) ? 'Added' : 'Removed',
@@ -672,15 +681,6 @@ class UnusedFileReportBuildTask extends BuildTask
             return $table . '_Versions';
         } else {
             return $table;
-        }
-    }
-
-    protected function outputMessage(?string $message)
-    {
-        if (Director::is_cli()) {
-            echo $message . PHP_EOL;
-        } else {
-            echo sprintf('<p>%s</p>' . PHP_EOL, $message);
         }
     }
 
