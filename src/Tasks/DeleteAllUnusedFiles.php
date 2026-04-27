@@ -2,19 +2,13 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
-use Exception;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
-use SilverStripe\ORM\Queries\SQLInsert;
-use SilverStripe\ORM\FieldType\DBDatetime;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Assets\File;
-use SilverStripe\CMS\Model\SiteTree;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\Environment;
-use SilverStripe\Core\Manifest\ClassLoader;
 use SilverStripe\Control\Director;
 use RobIngram\SilverStripe\UnusedFileReport\Model\UnusedFileReportDB;
 use SilverStripe\Assets\Folder;
@@ -47,22 +41,33 @@ class DeleteAllUnusedFiles extends BuildTask
     protected $description = 'All the files that currently listed in the unused file report will be deleted.';
 
     private static bool $skip_deleting_folders = true;
+
     private static bool $skip_deleting_images = false;
+
     private static bool $skip_deleting_non_images = true;
 
     private static bool $skip_deleting_folders_physical_only = false;
+
     private static bool $skip_deleting_images_physical_only = false;
+
     private static bool $skip_deleting_non_images_physical_only = false;
+
     private static bool $skip_deleting_all_files_physical_only = false;
 
     protected bool $skipDeletingFolders;
+
     protected bool $skipDeletingImages;
+
     protected bool $skipDeletingNonImages;
 
     protected bool $skipDeletingFoldersPhysicalOnly;
+
     protected bool $skipDeletingImagesPhysicalOnly;
+
     protected bool $skipDeletingNonImagesPhysicalOnly;
+
     protected bool $skipDeletingAllFilesPhysicalOnly;
+
     protected int $countOfFiles = 0;
 
 
@@ -82,6 +87,7 @@ class DeleteAllUnusedFiles extends BuildTask
             echo 'ERROR: This task can only be run from the command line.' . PHP_EOL;
             return;
         }
+
         $this->skipDeletingFolders = Config::inst()->get(self::class, 'skip_deleting_folders');
         $this->skipDeletingImages = Config::inst()->get(self::class, 'skip_deleting_images');
         $this->skipDeletingNonImages = Config::inst()->get(self::class, 'skip_deleting_non_images');
@@ -91,7 +97,7 @@ class DeleteAllUnusedFiles extends BuildTask
         $this->skipDeletingAllFilesPhysicalOnly = Config::inst()->get(self::class, 'skip_deleting_all_files_physical_only');
 
         // important do first - just to be sure we have the latest data
-        (new UnusedFileReportBuildTask())->run($request);
+        (UnusedFileReportBuildTask::create())->run($request);
 
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         $this->countOfFiles = count($list);
@@ -104,6 +110,7 @@ class DeleteAllUnusedFiles extends BuildTask
         } else {
             echo 'No files to delete.' . PHP_EOL;
         }
+
         echo '======================' . PHP_EOL . PHP_EOL . PHP_EOL;
     }
 
@@ -114,18 +121,16 @@ class DeleteAllUnusedFiles extends BuildTask
 
         if ($file) {
             echo 'Looking at file: ' . $myCount . ' / ' . $this->countOfFiles . ': '  . $file->getFilename();
-            if ($this->skipDeletingFolders) {
-                if ($file instanceof Folder) {
-                    echo '... Skipping folder: ' . $file->getFilename() . PHP_EOL;
-                    return true;
-                }
+            if ($this->skipDeletingFolders && $file instanceof Folder) {
+                echo '... Skipping folder: ' . $file->getFilename() . PHP_EOL;
+                return true;
             }
-            if ($this->skipDeletingImages) {
-                if ($file instanceof Image) {
-                    echo '... Skipping image: ' . $file->getFilename() . PHP_EOL;
-                    return true;
-                }
+
+            if ($this->skipDeletingImages && $file instanceof Image) {
+                echo '... Skipping image: ' . $file->getFilename() . PHP_EOL;
+                return true;
             }
+
             if ($this->skipDeletingNonImages) {
                 if (!($file instanceof Image)) {
                     echo '... Skipping non-image file: ' . $file->getFilename() . PHP_EOL;
@@ -138,6 +143,7 @@ class DeleteAllUnusedFiles extends BuildTask
                     return true;
                 }
             }
+
             $file->deleteFromStage(Versioned::DRAFT);
             $file->deleteFromStage(Versioned::LIVE);
             DB::query('DELETE FROM "File" WHERE "ID" = ' . $id . ' LIMIT 1');
@@ -153,6 +159,7 @@ class DeleteAllUnusedFiles extends BuildTask
             DB::query('DELETE FROM "UnusedFileReportDB" WHERE "FileID" = ' . $id . ' LIMIT 1');
             echo 'ERROR: Could not find DB file to delete, ID is: ' . $id . PHP_EOL;
         }
+
         return false;
     }
 
@@ -161,6 +168,7 @@ class DeleteAllUnusedFiles extends BuildTask
         if ($this->skipDeletingAllFilesPhysicalOnly) {
             return true;
         }
+
         $fileName = $file->getFilename();
         if ($fileName) {
             $path = Controller::join_links(ASSETS_PATH, $fileName);
@@ -169,17 +177,21 @@ class DeleteAllUnusedFiles extends BuildTask
                 if ($this->skipDeletingFoldersPhysicalOnly && $file instanceof Folder) {
                     return true;
                 }
+
                 if ($this->skipDeletingImagesPhysicalOnly && $file instanceof Image) {
                     return true;
                 }
+
                 if ($this->skipDeletingNonImagesPhysicalOnly && !($file instanceof Image) && !($file instanceof Folder)) {
                     return true;
                 }
+
                 if ($this->deleteDirectoryOrFile($path)) {
                     echo '... Deleted physical file: ' . $path . PHP_EOL;
                 } else {
                     echo '... Deletion did not work successfully: ' . $path . PHP_EOL;
                 }
+
                 if (file_exists($path)) {
                     echo 'ERROR: Could not delete file: ' . $path . PHP_EOL;
                     return false;
@@ -190,6 +202,7 @@ class DeleteAllUnusedFiles extends BuildTask
         } else {
             echo 'ERROR: Could not find filename for File with ID: ' . $file->ID . PHP_EOL;
         }
+
         return false;
     }
 

@@ -44,7 +44,7 @@ if (class_exists(AbstractQueuedJob::class)) {
          */
         public function process()
         {
-            $task = new UnusedFileReportBuildTask();
+            $task = UnusedFileReportBuildTask::create();
             $task->run(new HTTPRequest('GET', "/dev/tasks/UnusedFileReportBuildTask"));
 
             $this->currentStep = 1;
