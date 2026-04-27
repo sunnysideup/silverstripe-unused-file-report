@@ -2,19 +2,17 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Reports;
 
+use Override;
 use SilverStripe\Reports\Report;
 use SilverStripe\Security\Member;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
-use SilverStripe\Forms\GridField\GridFieldPrintButton;
-use SilverStripe\Forms\GridField\GridFieldExportButton;
 use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Assets\File;
 use SilverStripe\Control\Controller;
 use SilverStripe\AssetAdmin\Controller\AssetAdmin;
 use SilverStripe\ORM\FieldType\DBField;
-use SilverStripe\Versioned\VersionedGridFieldState\VersionedGridFieldState;
 
 /**
  * Create a report on the files that have been flagged as potentially unused
@@ -24,11 +22,13 @@ use SilverStripe\Versioned\VersionedGridFieldState\VersionedGridFieldState;
  */
 class UnusedFilesReport extends Report
 {
+    #[Override]
     public function title()
     {
         return 'Unused Files Report';
     }
 
+    #[Override]
     public function description()
     {
         return DBField::create_field(
@@ -37,6 +37,7 @@ class UnusedFilesReport extends Report
         );
     }
 
+    #[Override]
     public function columns()
     {
         $fields = [
@@ -51,19 +52,15 @@ class UnusedFilesReport extends Report
             ],
             'Name' => [
                 'title' => 'File',
-                'formatting' => function ($value, $item) {
-                    return sprintf(
-                        "<a href='%s' target=\"_blank\">%s</a>",
-                        Controller::join_links(singleton(AssetAdmin::class)->Link('EditForm'), 'field/File/item', $item->ID, 'edit'),
-                        $value,
-                    );
-                },
+                'formatting' => fn($value, $item) => sprintf(
+                    "<a href='%s' target=\"_blank\">%s</a>",
+                    Controller::join_links(singleton(AssetAdmin::class)->Link('EditForm'), 'field/File/item', $item->ID, 'edit'),
+                    $value,
+                ),
             ],
             'FileSize' => [
                 'title' => 'File size',
-                'formatting' => function ($value, $item) {
-                    return $item->getSize();
-                },
+                'formatting' => fn($value, $item) => $item->getSize(),
             ],
             'FileName' => 'Location',
             'ClassName' => 'Type',
@@ -75,6 +72,7 @@ class UnusedFilesReport extends Report
                         $owner = Member::get()->byID($item->OwnerID);
                         return $owner = (isset($owner) ? $owner->getName() : 'Deleted');
                     }
+
                     return $value;
                 },
             ],
@@ -113,7 +111,7 @@ class UnusedFilesReport extends Report
             ->innerJoin('UnusedFileReportDB', '"File"."ID" = "UnusedFileReportDB"."FileID"');
 
         if (isset($params['Title'])) {
-            $files = $files->filter('Title:PartialMatch:nocase', $params['Title']);
+            $files = $files->filter(['Title:PartialMatch:nocase' => $params['Title']]);
         }
 
         if ($where) {
@@ -127,22 +125,20 @@ class UnusedFilesReport extends Report
 
     public function parameterFields()
     {
-        return new FieldList(
-            TextField::create('Title', 'File name'),
-            new DropdownField('FileType', 'File type', [
-                'All' => 'All',
-                'File' => 'Files Only',
-                'Image' => 'Images Only',
-            ]),
-        );
+        return FieldList::create(TextField::create('Title', 'File name'), DropdownField::create('FileType', 'File type', [
+            'All' => 'All',
+            'File' => 'Files Only',
+            'Image' => 'Images Only',
+        ]));
     }
 
+    #[Override]
     public function getReportField()
     {
         $field = parent::getReportField();
 
         if ($config = $field->getConfig()) {
-            $config->addComponent(new GridFieldDeleteAction());
+            $config->addComponent(GridFieldDeleteAction::create());
             $config->addComponent(new VersionedGridFieldState());
         }
 

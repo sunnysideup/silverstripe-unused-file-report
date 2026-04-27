@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RobIngram\SilverStripe\UnusedFileReport\Model;
 
 use SilverStripe\ORM\DataObject;

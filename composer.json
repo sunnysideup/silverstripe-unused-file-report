@@ -1,34 +1,34 @@
 {
-    "name": "sunnysideup/silverstripe-unused-file-report",
-    "description": "Generates a report on potentially unused files for CMS users",
-    "keywords": [
-        "silverstripe",
-        "unused",
-        "file",
-        "report"
-    ],
-    "type": "silverstripe-vendormodule",
-    "license": "BSD-3-Clause",
-    "authors": [
-        {
-            "name": "Rob Ingram",
-            "email": "robert.ingram@ccc.govt.nz"
-        }
-    ],
-    "require": {
-        "silverstripe/framework": "^5",
-        "silverstripe/assets": "^2"
-    },
-    "autoload": {
-        "psr-4": {
-            "RobIngram\\SilverStripe\\UnusedFileReport\\": "src/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "3.0.x-dev"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+  "name": "sunnysideup/silverstripe-unused-file-report",
+  "description": "Generates a report on potentially unused files for CMS users",
+  "keywords": [
+    "silverstripe",
+    "unused",
+    "file",
+    "report"
+  ],
+  "type": "silverstripe-vendormodule",
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "Rob Ingram",
+      "email": "robert.ingram@ccc.govt.nz"
+    }
+  ],
+  "require": {
+    "silverstripe/framework": "^6.0",
+    "silverstripe/assets": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "RobIngram\\SilverStripe\\UnusedFileReport\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "3.0.x-dev"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

@@ -2,10 +2,12 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Jobs;
 
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\ArrayInput;
+use SilverStripe\PolyExecution\PolyOutput;
 use RobIngram\SilverStripe\UnusedFileReport\Tasks\UnusedFileReportBuildTask;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJob;
-use SilverStripe\Control\HTTPRequest;
 
 
 if (class_exists(AbstractQueuedJob::class)) {
@@ -44,8 +46,14 @@ if (class_exists(AbstractQueuedJob::class)) {
          */
         public function process()
         {
-            $task = new UnusedFileReportBuildTask();
-            $task->run(new HTTPRequest('GET', "/dev/tasks/UnusedFileReportBuildTask"));
+            $task = UnusedFileReportBuildTask::create();
+            $definition = new InputDefinition($task->getOptions());
+            $input = new ArrayInput([], $definition);
+            $output = PolyOutput::create(PolyOutput::FORMAT_ANSI);
+            $definition = new InputDefinition($task->getOptions());
+            $input = new ArrayInput([], $definition);
+            $output = PolyOutput::create(PolyOutput::FORMAT_ANSI);
+            $task->run($input, $output);
 
             $this->currentStep = 1;
             $this->isComplete = true;
