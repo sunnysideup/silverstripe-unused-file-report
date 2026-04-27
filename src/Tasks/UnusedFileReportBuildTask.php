@@ -120,18 +120,18 @@ class UnusedFileReportBuildTask extends BuildTask
      */
     public function buildReportTable()
     {
-        $used = $this->getUsedFiles();
+        $used             = $this->getUsedFiles();
         $unusedPreviously = UnusedFileReportDB::get()->count();
 
         if ($used) {
-            $query =  sprintf(
+            $query = sprintf(
                 "SELECT ID FROM File WHERE ID NOT IN (%s) AND ClassName != 'SilverStripe\\Assets\\Folder'",
                 implode(',', $used),
             );
 
             $files = DB::query($query)->column();
             $count = 0;
-            $done = [];
+            $done  = [];
 
             $now = DBDatetime::now()->Rfc2822();
 
@@ -142,13 +142,13 @@ class UnusedFileReportBuildTask extends BuildTask
 
                 foreach ($files as $file) {
                     $insert->addRow([
-                        'FileID' => $file,
+                        'FileID'     => $file,
                         'LastEdited' => $now,
-                        'Created' => $now,
+                        'Created'    => $now,
                     ]);
 
                     $done[$file] = true;
-                    $count++;
+                    ++$count;
                 }
 
                 if (!$insert->isEmpty()) {
@@ -157,7 +157,7 @@ class UnusedFileReportBuildTask extends BuildTask
             }
 
             // remove any which aren't used in live.
-            $query =  sprintf(
+            $query = sprintf(
                 "SELECT ID FROM File_Live WHERE ID NOT IN (%s) AND ClassName != 'SilverStripe\\Assets\\Folder'",
                 implode(',', $used),
             );
@@ -184,26 +184,36 @@ class UnusedFileReportBuildTask extends BuildTask
                 if (!$insert->isEmpty()) {
                     $insert->execute();
                 }
+                // Calculate total disk space used by unused files
+                $totalSize = 0;
+                foreach ($files as $file) {
+                    $fileObj = File::get()->byID($file);
+                    if ($fileObj) {
+                        $totalSize += $fileObj->getAbsoluteSize();
+                    }
+                }
             }
 
             $this->outputMessage(sprintf(
-                "%sReport table generation completed. %s %s files to Unused File DB.",
+                '%sReport table generation completed. %s %s files to Unused File DB. Total disk space used by unused files: %s',
                 PHP_EOL,
                 ($count > $unusedPreviously) ? 'Added' : 'Removed',
                 abs($count - $unusedPreviously),
+                $this->getNiceSize($totalSize)
             ));
         }
     }
 
     /**
      * Get the IDs of all files that are in use on the site.
+     *
+     * @return array
      */
     protected function getUsedFiles(): array
     {
         $classesToCheck = $this->getClassesToCheck();
 
-        $classesWithFiles = $this->getFileClasses($classesToCheck);
-
+        $classesWithFiles  = $this->getFileClasses($classesToCheck);
         $relationshipQuery = $this->getRelationshipFileQuery($classesWithFiles);
         unset($classesWithFiles);
 
@@ -220,8 +230,7 @@ class UnusedFileReportBuildTask extends BuildTask
         unset($contentQuery);
 
         $usedIds = array_unique(array_merge($relatedIds, $contentIds));
-        unset($relatedIds);
-        unset($contentIds);
+        unset($relatedIds, $contentIds);
 
         $fileLinkIds = $this->getFileLinkIds($usedIds);
         return array_unique(array_merge($usedIds, $fileLinkIds));
@@ -229,6 +238,8 @@ class UnusedFileReportBuildTask extends BuildTask
 
     /**
      * Get all the candidate classes to check for File or Image references.
+     *
+     * @return array
      */
     protected function getClassesToCheck(): array
     {
@@ -511,7 +522,7 @@ class UnusedFileReportBuildTask extends BuildTask
      */
     protected function getContentIds(array $queries): array
     {
-        $allIds = [];
+        $allIds    = [];
         $batchSize = self::LARGE_QUERY_BATCH_SIZE;
         foreach ($queries as $query) {
             $offset = 0;
@@ -554,11 +565,14 @@ class UnusedFileReportBuildTask extends BuildTask
             $allImages,
         );
         $allImages = array_unique($allImages->images);
+
         return $this->findFiles($allImages);
     }
 
     /**
      * Extract the IDs of all files from file references in HTML content
+     *
+     * @param string $content
      */
     protected function extractFileReferences(array $content): array
     {
