@@ -12,7 +12,16 @@ use SilverStripe\Assets\File;
 use SilverStripe\Control\Controller;
 use SilverStripe\AssetAdmin\Controller\AssetAdmin;
 use SilverStripe\ORM\FieldType\DBField;
-use SilverStripe\Versioned\VersionedGridFieldState\VersionedGridFieldState;
+
+/**
+  * ### @@@@ START REPLACEMENT @@@@ ###
+  * WHY: automated upgrade
+  * OLD: SilverStripe\Versioned\VersionedGridFieldState\VersionedGridFieldState
+  * NEW: GridFieldDataColumns ...  (COMPLEX)
+  * EXP: Removed deprecated class SilverStripe\\Versioned\\VersionedGridFieldState\\VersionedGridFieldState - replaced with functionality in GridFieldDataColumns. See: https://docs.silverstripe.org/en/6/changelogs/6.0.0/
+  * ### @@@@ STOP REPLACEMENT @@@@ ###
+  */
+use GridFieldDataColumns;
 
 /**
  * Create a report on the files that have been flagged as potentially unused
