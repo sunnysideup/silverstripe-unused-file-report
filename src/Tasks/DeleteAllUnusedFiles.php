@@ -2,6 +2,10 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
+use Symfony\Component\Console\Input\InputInterface;
+use SilverStripe\Console\PolyOutput;
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\ArrayInput;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SilverStripe\Dev\BuildTask;
@@ -26,13 +30,13 @@ class DeleteAllUnusedFiles extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    private static $segment = 'delete-all-unused-files';
+    protected static string $commandName = 'delete-all-unused-files';
 
     /**
      * {@inheritDoc}
      * @var string
      */
-    protected $title = 'Delete all unused files';
+    protected string $title = 'Delete all unused files';
 
     /**
      * {@inheritDoc}
@@ -75,7 +79,7 @@ class DeleteAllUnusedFiles extends BuildTask
      * {@inheritDoc}
      * @param  HTTPRequest $request
      */
-    public function run($request)
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         Environment::increaseMemoryLimitTo(-1);
         Environment::increaseTimeLimitTo(-1);
@@ -87,7 +91,6 @@ class DeleteAllUnusedFiles extends BuildTask
             echo 'ERROR: This task can only be run from the command line.' . PHP_EOL;
             return;
         }
-
         $this->skipDeletingFolders = Config::inst()->get(self::class, 'skip_deleting_folders');
         $this->skipDeletingImages = Config::inst()->get(self::class, 'skip_deleting_images');
         $this->skipDeletingNonImages = Config::inst()->get(self::class, 'skip_deleting_non_images');
@@ -95,10 +98,10 @@ class DeleteAllUnusedFiles extends BuildTask
         $this->skipDeletingImagesPhysicalOnly = Config::inst()->get(self::class, 'skip_deleting_images_physical_only');
         $this->skipDeletingNonImagesPhysicalOnly = Config::inst()->get(self::class, 'skip_deleting_non_images_physical_only');
         $this->skipDeletingAllFilesPhysicalOnly = Config::inst()->get(self::class, 'skip_deleting_all_files_physical_only');
-
-        // important do first - just to be sure we have the latest data
-        (UnusedFileReportBuildTask::create())->run($request);
-
+        $definition = new InputDefinition(UnusedFileReportBuildTask::create()->getOptions());
+        $input = new ArrayInput([], $definition);
+        $output = \SilverStripe\PolyExecution\PolyOutput::create(\SilverStripe\PolyExecution\PolyOutput::FORMAT_ANSI);
+        (UnusedFileReportBuildTask::create())->run($input);
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         $this->countOfFiles = count($list);
         if ($list) {
@@ -110,8 +113,8 @@ class DeleteAllUnusedFiles extends BuildTask
         } else {
             echo 'No files to delete.' . PHP_EOL;
         }
-
         echo '======================' . PHP_EOL . PHP_EOL . PHP_EOL;
+        return 0;
     }
 
 

@@ -2,6 +2,8 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
+use Symfony\Component\Console\Input\InputInterface;
+use SilverStripe\Console\PolyOutput;
 use SilverStripe\Assets\Image;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
@@ -29,13 +31,13 @@ class UnusedFileReportBuildTask extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    private static $segment = 'UnusedFileReportBuildTask';
+    protected static string $commandName = 'UnusedFileReportBuildTask';
 
     /**
      * {@inheritDoc}
      * @var string
      */
-    protected $title = 'Build table for Unused File Reports';
+    protected string $title = 'Build table for Unused File Reports';
 
     /**
      * {@inheritDoc}
@@ -95,11 +97,10 @@ class UnusedFileReportBuildTask extends BuildTask
      * {@inheritDoc}
      * @param  HTTPRequest $request
      */
-    public function run($request)
+    protected function execute(InputInterface $input, PolyOutput $output): int
     {
         Environment::increaseMemoryLimitTo(-1);
         Environment::increaseTimeLimitTo(-1);
-
         if ($id = $request->getVar('check')) {
             $used = $this->getUsedFiles();
 
@@ -115,6 +116,7 @@ class UnusedFileReportBuildTask extends BuildTask
             $this->outputMessage('Memory: ' . $this->getNiceSize(memory_get_peak_usage()));
             $this->outputMessage('End: ' . date('Y-m-d H:i:s'));
         }
+        return 0;
     }
 
     /**
