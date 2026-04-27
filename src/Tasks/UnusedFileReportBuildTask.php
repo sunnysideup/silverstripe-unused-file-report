@@ -200,7 +200,6 @@ class UnusedFileReportBuildTask extends BuildTask
                 if (!$insert->isEmpty()) {
                     $insert->execute();
                 }
-
                 // Calculate total disk space used by unused files
                 $totalSize = 0;
                 foreach ($files as $file) {
@@ -211,7 +210,7 @@ class UnusedFileReportBuildTask extends BuildTask
                 }
             }
 
-            $output->writeln(sprintf(
+            $this->outputMessage(sprintf(
                 '%sReport table generation completed. %s %s files to Unused File DB. Total disk space used by unused files: %s',
                 PHP_EOL,
                 ($count > $unusedPreviously) ? 'Added' : 'Removed',
