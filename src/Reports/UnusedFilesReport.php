@@ -2,6 +2,7 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Reports;
 
+use Override;
 use SilverStripe\Reports\Report;
 use SilverStripe\Security\Member;
 use SilverStripe\Forms\FieldList;
@@ -14,16 +15,6 @@ use SilverStripe\AssetAdmin\Controller\AssetAdmin;
 use SilverStripe\ORM\FieldType\DBField;
 
 /**
-  * ### @@@@ START REPLACEMENT @@@@ ###
-  * WHY: automated upgrade
-  * OLD: SilverStripe\Versioned\VersionedGridFieldState\VersionedGridFieldState
-  * NEW: GridFieldDataColumns ...  (COMPLEX)
-  * EXP: Removed deprecated class SilverStripe\\Versioned\\VersionedGridFieldState\\VersionedGridFieldState - replaced with functionality in GridFieldDataColumns. See: https://docs.silverstripe.org/en/6/changelogs/6.0.0/
-  * ### @@@@ STOP REPLACEMENT @@@@ ###
-  */
-use GridFieldDataColumns;
-
-/**
  * Create a report on the files that have been flagged as potentially unused
  *
  * @author Rob Ingram <robert.ingram@ccc.govt.nz>
@@ -31,11 +22,13 @@ use GridFieldDataColumns;
  */
 class UnusedFilesReport extends Report
 {
+    #[Override]
     public function title()
     {
         return 'Unused Files Report';
     }
 
+    #[Override]
     public function description()
     {
         return DBField::create_field(
@@ -44,6 +37,7 @@ class UnusedFilesReport extends Report
         );
     }
 
+    #[Override]
     public function columns()
     {
         $fields = [
@@ -138,6 +132,7 @@ class UnusedFilesReport extends Report
         ]));
     }
 
+    #[Override]
     public function getReportField()
     {
         $field = parent::getReportField();
