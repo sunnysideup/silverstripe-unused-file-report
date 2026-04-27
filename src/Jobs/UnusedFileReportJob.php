@@ -50,7 +50,10 @@ if (class_exists(AbstractQueuedJob::class)) {
             $definition = new InputDefinition($task->getOptions());
             $input = new ArrayInput([], $definition);
             $output = PolyOutput::create(PolyOutput::FORMAT_ANSI);
-            $task->run($input);
+            $definition = new InputDefinition($task->getOptions());
+            $input = new ArrayInput([], $definition);
+            $output = PolyOutput::create(PolyOutput::FORMAT_ANSI);
+            $task->run($input, $output);
 
             $this->currentStep = 1;
             $this->isComplete = true;

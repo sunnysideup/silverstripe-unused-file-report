@@ -91,6 +91,7 @@ class DeleteAllUnusedFiles extends BuildTask
             echo 'ERROR: This task can only be run from the command line.' . PHP_EOL;
             return;
         }
+
         $this->skipDeletingFolders = Config::inst()->get(self::class, 'skip_deleting_folders');
         $this->skipDeletingImages = Config::inst()->get(self::class, 'skip_deleting_images');
         $this->skipDeletingNonImages = Config::inst()->get(self::class, 'skip_deleting_non_images');
@@ -101,7 +102,10 @@ class DeleteAllUnusedFiles extends BuildTask
         $definition = new InputDefinition(UnusedFileReportBuildTask::create()->getOptions());
         $input = new ArrayInput([], $definition);
         $output = \SilverStripe\PolyExecution\PolyOutput::create(\SilverStripe\PolyExecution\PolyOutput::FORMAT_ANSI);
-        (UnusedFileReportBuildTask::create())->run($input);
+        $definition = new InputDefinition(UnusedFileReportBuildTask::create()->getOptions());
+        $input = new ArrayInput([], $definition);
+        $output = \SilverStripe\PolyExecution\PolyOutput::create(\SilverStripe\PolyExecution\PolyOutput::FORMAT_ANSI);
+        UnusedFileReportBuildTask::create()->run($input, $output);
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         $this->countOfFiles = count($list);
         if ($list) {
@@ -113,6 +117,7 @@ class DeleteAllUnusedFiles extends BuildTask
         } else {
             echo 'No files to delete.' . PHP_EOL;
         }
+
         echo '======================' . PHP_EOL . PHP_EOL . PHP_EOL;
         return 0;
     }

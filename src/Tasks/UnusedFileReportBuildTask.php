@@ -116,6 +116,7 @@ class UnusedFileReportBuildTask extends BuildTask
             $this->outputMessage('Memory: ' . $this->getNiceSize(memory_get_peak_usage()));
             $this->outputMessage('End: ' . date('Y-m-d H:i:s'));
         }
+
         return 0;
     }
 
