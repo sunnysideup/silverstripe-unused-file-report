@@ -2,6 +2,7 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
+use Override;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Command\Command;
@@ -49,7 +50,7 @@ class UnusedFileReportBuildTask extends BuildTask
      * {@inheritDoc}
      * @var boolean
      */
-    protected $enabled = true;
+    private static bool $is_enabled = true;
 
     /**
      * Reference to the SS class manifest
@@ -122,6 +123,7 @@ class UnusedFileReportBuildTask extends BuildTask
     /**
      * Get input options that can be passed into the command
      */
+    #[Override]
     public function getOptions(): array
     {
         return [
@@ -200,6 +202,7 @@ class UnusedFileReportBuildTask extends BuildTask
                 if (!$insert->isEmpty()) {
                     $insert->execute();
                 }
+
                 // Calculate total disk space used by unused files
                 $totalSize = 0;
                 foreach ($files as $file) {

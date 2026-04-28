@@ -95,7 +95,7 @@ class DeleteAllUnusedFiles extends BuildTask
         $this->skipDeletingAllFilesPhysicalOnly = Config::inst()->get(self::class, 'skip_deleting_all_files_physical_only');
         $definition = new InputDefinition(UnusedFileReportBuildTask::create()->getOptions());
         $inputForSubtask = new ArrayInput([], $definition);
-        $outputForSubtask = \SilverStripe\PolyExecution\PolyOutput::create(\SilverStripe\PolyExecution\PolyOutput::FORMAT_ANSI);
+        $outputForSubtask = PolyOutput::create(PolyOutput::FORMAT_ANSI);
         UnusedFileReportBuildTask::create()->run($inputForSubtask, $outputForSubtask);
         $list = UnusedFileReportDB::get()->columnUnique('FileID');
         $this->countOfFiles = count($list);
