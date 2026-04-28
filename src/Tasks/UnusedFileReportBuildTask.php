@@ -213,12 +213,13 @@ class UnusedFileReportBuildTask extends BuildTask
                 }
             }
 
-            $this->outputMessage(sprintf(
+            // @TODO (SS6 upgrade): $totalSize may be undefined if the $files (File_Live) block was skipped.
+            $output->writeln(sprintf(
                 '%sReport table generation completed. %s %s files to Unused File DB. Total disk space used by unused files: %s',
                 PHP_EOL,
                 ($count > $unusedPreviously) ? 'Added' : 'Removed',
                 abs($count - $unusedPreviously),
-                $this->getNiceSize($totalSize)
+                $this->getNiceSize($totalSize ?? 0)
             ));
         }
     }
