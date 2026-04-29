@@ -12,6 +12,7 @@ use SilverStripe\Forms\GridField\GridFieldDeleteAction;
 use SilverStripe\Assets\File;
 use SilverStripe\Control\Controller;
 use SilverStripe\AssetAdmin\Controller\AssetAdmin;
+use SilverStripe\Forms\GridField\GridFieldDataColumns;
 use SilverStripe\ORM\FieldType\DBField;
 
 /**
@@ -52,7 +53,7 @@ class UnusedFilesReport extends Report
             ],
             'Name' => [
                 'title' => 'File',
-                'formatting' => fn($value, $item) => sprintf(
+                'formatting' => fn ($value, $item) => sprintf(
                     "<a href='%s' target=\"_blank\">%s</a>",
                     Controller::join_links(singleton(AssetAdmin::class)->Link('EditForm'), 'field/File/item', $item->ID, 'edit'),
                     $value,
@@ -60,11 +61,10 @@ class UnusedFilesReport extends Report
             ],
             'FileSize' => [
                 'title' => 'File size',
-                'formatting' => fn($value, $item) => $item->getSize(),
+                'formatting' => fn ($value, $item) => $item->getSize(),
             ],
             'FileName' => 'Location',
             'ClassName' => 'Type',
-            'OwnerID' => 'OwnerID',
             'OwnerID' => [
                 'title' => 'OwnerID',
                 'formatting' => function ($value, $item) {
@@ -139,7 +139,10 @@ class UnusedFilesReport extends Report
 
         if ($config = $field->getConfig()) {
             $config->addComponent(GridFieldDeleteAction::create());
-            $config->addComponent(new VersionedGridFieldState());
+            // $config->addComponent(new VersionedGridFieldState());
+            $dataColumns = $config->getComponentByType(GridFieldDataColumns::class);
+            // Show the flags against a specific column (e.g. if you don't have a Title column)
+            $dataColumns->setColumnsForStatusFlag(['Name']);
         }
 
         return $field;
