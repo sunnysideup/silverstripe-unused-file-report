@@ -45,6 +45,71 @@ builder task has not been run the report will contain no data.
 If the Queued Jobs module is installed then the report builder job will appear
 in the "Create job of type" drop-down list in the Jobs tab as `UnusedFileReportJob`.
 
+## Data clean-up tasks
+
+Two build tasks help to clean up folders and files whose draft and live
+versions are out of sync (for example, files flagged as "Modified" in the CMS).
+Both tasks should be run with `--dry-run` first.
+
+### Force write all folders
+
+Force-writes every folder on the draft stage and re-publishes the folders that
+were already published. Folders are processed breadth-first, so parents are
+always written before their children. Folders that are not published are
+written to draft only. Only the folder itself is published (`publishSingle`),
+so draft-only children and files are not published as a side effect.
+
+CLI:
+
+```
+vendor/bin/sake tasks:force-write-folders [--dry-run] [--no-publish]
+```
+
+Browser:
+
+```
+/dev/tasks/force-write-folders?dry-run=1
+```
+
+Options:
+
+| Option         | Description                                         |
+|----------------|-----------------------------------------------------|
+| `--dry-run`    | Report what would happen without writing anything.  |
+| `--no-publish` | Write to draft only, never publish.                 |
+
+The task prints a summary (written, published, failed) and exits with a
+failure code if any folder failed.
+
+### Re-publish modified files
+
+Publishes the draft version of every file (not folders) that is published but
+has unpublished draft changes, so it is no longer flagged as "Modified" in the
+CMS. Draft-only files (never published, or unpublished) are left alone.
+
+CLI:
+
+```
+vendor/bin/sake tasks:republish-modified-files [--dry-run]
+```
+
+Browser:
+
+```
+/dev/tasks/republish-modified-files?dry-run=1
+```
+
+Options:
+
+| Option      | Description                                           |
+|-------------|-------------------------------------------------------|
+| `--dry-run` | Report what would happen without publishing anything. |
+
+The task prints a summary (published, skipped, failed) and exits with a
+failure code if any file failed.
+
+Tip: run "Force write all folders" first if folders are also out of sync.
+
 ## Credits
 
 Thanks to Christchurch City Council, New Zealand, for enabling the development
