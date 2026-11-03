@@ -38,11 +38,14 @@ class DeleteAllUnusedFiles extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    protected $description = 'All the files that currently listed in the unused file report will be deleted.';
+    protected $description = 'All the files that currently listed in the unused file report will be deleted. Dry run by default: run with forreal=1 to really delete. Images are only deleted if skip_deleting_images is set to false.';
 
     private static bool $skip_deleting_folders = true;
 
-    private static bool $skip_deleting_images = false;
+    /**
+     * images are NOT deleted, unless this is explicitly set to false.
+     */
+    private static bool $skip_deleting_images = true;
 
     private static bool $skip_deleting_non_images = true;
 
@@ -70,6 +73,11 @@ class DeleteAllUnusedFiles extends BuildTask
 
     protected int $countOfFiles = 0;
 
+    /**
+     * nothing is deleted unless forreal=1 is added.
+     */
+    protected bool $dryRun = true;
+
 
     /**
      * {@inheritDoc}
@@ -86,6 +94,11 @@ class DeleteAllUnusedFiles extends BuildTask
         if (! Director::is_cli()) {
             echo 'ERROR: This task can only be run from the command line.' . PHP_EOL;
             return;
+        }
+
+        $this->dryRun = ! ($request && $request->getVar('forreal'));
+        if ($this->dryRun) {
+            echo 'DRY RUN: nothing is deleted. Add forreal=1 to really delete the files.' . PHP_EOL;
         }
 
         $this->skipDeletingFolders = Config::inst()->get(self::class, 'skip_deleting_folders');
@@ -142,6 +155,11 @@ class DeleteAllUnusedFiles extends BuildTask
                     echo '... Skipping PDF file: ' . $file->getFilename() . PHP_EOL;
                     return true;
                 }
+            }
+
+            if ($this->dryRun) {
+                echo '... DRY RUN: would delete' . PHP_EOL;
+                return true;
             }
 
             $file->deleteFromStage(Versioned::DRAFT);
