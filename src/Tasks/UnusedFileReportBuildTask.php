@@ -628,7 +628,10 @@ class UnusedFileReportBuildTask extends BuildTask
         foreach ($fileLinks as $fileLink) {
             $parent = $fileLink->Parent();
             if ($parent && $parent->exists()) {
-                $ids[] = $fileLink->ID;
+                // the ID of the file that is linked to (has_one Linked), NOT the ID of the FileLink row.
+                if ($fileLink->LinkedID) {
+                    $ids[] = (int) $fileLink->LinkedID;
+                }
             }
         }
 

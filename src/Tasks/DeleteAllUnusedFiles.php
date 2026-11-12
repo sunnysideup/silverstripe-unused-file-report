@@ -2,7 +2,9 @@
 
 namespace RobIngram\SilverStripe\UnusedFileReport\Tasks;
 
+use Override;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use SilverStripe\PolyExecution\PolyOutput;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -41,11 +43,14 @@ class DeleteAllUnusedFiles extends BuildTask
      * {@inheritDoc}
      * @var string
      */
-    protected static string $description = 'All the files that currently listed in the unused file report will be deleted.';
+    protected static string $description = 'All the files that currently listed in the unused file report will be deleted. Dry run by default: use --forreal to really delete. Images are only deleted if skip_deleting_images is set to false.';
 
     private static bool $skip_deleting_folders = true;
 
-    private static bool $skip_deleting_images = false;
+    /**
+     * images are NOT deleted, unless this is explicitly set to false.
+     */
+    private static bool $skip_deleting_images = true;
 
     private static bool $skip_deleting_non_images = true;
 
@@ -73,6 +78,18 @@ class DeleteAllUnusedFiles extends BuildTask
 
     protected int $countOfFiles = 0;
 
+    /**
+     * nothing is deleted unless --forreal is added.
+     */
+    protected bool $dryRun = true;
+
+    #[Override]
+    public function getOptions(): array
+    {
+        return [
+            new InputOption('forreal', null, InputOption::VALUE_NONE, 'Really delete the files (without this option nothing is deleted)'),
+        ];
+    }
 
     /**
      * {@inheritDoc}
@@ -85,6 +102,11 @@ class DeleteAllUnusedFiles extends BuildTask
         $output->writeln('======================');
         $output->writeln('Delete all unused files');
         $output->writeln('======================');
+
+        $this->dryRun = ! $input->getOption('forreal');
+        if ($this->dryRun) {
+            $output->writeln('DRY RUN: nothing is deleted. Add --forreal to really delete the files.');
+        }
 
         $this->skipDeletingFolders = Config::inst()->get(self::class, 'skip_deleting_folders');
         $this->skipDeletingImages = Config::inst()->get(self::class, 'skip_deleting_images');
@@ -142,6 +164,11 @@ class DeleteAllUnusedFiles extends BuildTask
                     $output->writeln('... Skipping PDF file: ' . $file->getFilename());
                     return true;
                 }
+            }
+
+            if ($this->dryRun) {
+                $output->writeln('... DRY RUN: would delete');
+                return true;
             }
 
             $file->deleteFromStage(Versioned::DRAFT);
